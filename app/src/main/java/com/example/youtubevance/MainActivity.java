@@ -4,6 +4,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Dialog;
+import android.app.Notification;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -41,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
                 if (intent.getBooleanExtra("expand",true)) {
                     Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
                     intent.putExtra("url", url);
-                    startForegroundService(intent);
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1){
+                        startForegroundService(intent);
+                    }
                     startService(intent);
                     finish();
                 }
@@ -97,11 +100,13 @@ public class MainActivity extends AppCompatActivity {
             //if(wbvMain.canGoBack()){
             //    wbvMain.goBack();
             //}else{
-                Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
-                intent.putExtra("url", wbvMain.getUrl());
+            Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
+            intent.putExtra("url", wbvMain.getUrl());
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1){
                 startForegroundService(intent);
-                startService(intent);
-                finish();
+            }
+            startService(intent);
+            finish();
             //}
             return true;
         }
@@ -123,7 +128,9 @@ public class MainActivity extends AppCompatActivity {
             if (requestCode == SYSTEM_ALERT_WINDOW_PERMISSION) {
                 Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
                 intent.putExtra("url", wbvMain.getUrl());
-                startForegroundService(intent);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1){
+                    startForegroundService(intent);
+                }
                 startService(intent);
                 finish();
             }

@@ -43,7 +43,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
     public void onCreate() {
         super.onCreate();
 
-        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O) {
             startForeground(1,new Notification());
         }else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1){
             startForeground();
@@ -53,12 +53,22 @@ public class FloatingViewService extends Service implements View.OnClickListener
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.layout_floating_widget, null);
 
         //setting the layout parameters
-        final WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT);
+        final WindowManager.LayoutParams params ;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    PixelFormat.TRANSLUCENT);
+        } else {
+            params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    PixelFormat.TRANSLUCENT);
+        }
 
         wbvYoutube = mFloatingView.findViewById(R.id.wbv_youtube);
         WebSettings webSettings = wbvYoutube.getSettings();
