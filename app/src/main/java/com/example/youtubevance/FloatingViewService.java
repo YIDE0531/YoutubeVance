@@ -24,6 +24,7 @@ import android.webkit.WebViewClient;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
+
 public class FloatingViewService extends Service implements View.OnClickListener {
     private WindowManager mWindowManager;
     private View mFloatingView;

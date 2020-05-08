@@ -2,16 +2,19 @@ package com.example.youtubevance;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
+import android.Manifest;
 import android.app.Dialog;
-import android.app.Notification;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -21,18 +24,41 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 public class MainActivity extends AppCompatActivity {
     private static final int SYSTEM_ALERT_WINDOW_PERMISSION = 2084;
     private WebView wbvMain;
     private String url = "https://m.youtube.com/";
     private Intent intent ;
     private CustomWebChromeClient chromeWebClient;
+    private final int REQUEST_EXTERNAL_STORAGE = 102;
+    private boolean isDebug = false ;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(isDebug){
+            int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                        this,
+                        new String[] {
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_EXTERNAL_STORAGE
+                );
+            }else{
+                Debugeth db = new Debugeth();
+                db.start();
+            }
+        }
 
         intent = getIntent();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
@@ -58,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             wbvMain.restoreState(savedInstanceState);
         }
+
     }
 
     void initView(){
@@ -204,4 +231,63 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_EXTERNAL_STORAGE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Debugeth db = new Debugeth();
+                    db.start();
+                } else {
+                    //使用者拒絕權限，停用檔案存取功能
+                }
+                break;
+        }
+    }
+
+    class Debugeth extends Thread { //用來Debug的程式碼將所有Logcat的資訊寫入手機文字檔中，方便debug。
+        @Override
+        public void run() {
+            try {
+                java.lang.Process p = Runtime.getRuntime().exec("logcat");
+                final InputStream is = p.getInputStream();
+                new Thread() {
+                    @Override
+                    public void run() {
+                        FileOutputStream os = null;
+                        try {
+                            String url = Environment.getExternalStorageDirectory().getAbsolutePath() ;
+                            Log.d("writelog", "read logcat process failed. message: " + url);
+
+                            File dirFile = new File(url + "/Youtuber/");
+                            if (!dirFile.exists()) {// 如果資料夾不存在
+                                dirFile.mkdir();// 建立資料夾
+                            }
+                            os = new FileOutputStream(url+"/Youtuber/writelogt", false);
+                            int len = 0;
+                            byte[] buf = new byte[1024];
+                            while (-1 != (len = is.read(buf))) {
+                                os.write(buf, 0, len);
+                                os.flush();
+                            }
+                        } catch (Exception e) {
+                            Log.d( "/Youtuber/writelog", "read logcat process failed. message: " + e.getMessage());
+                        } finally {
+                            if (null != os) {
+                                try {
+                                    os.close(); os = null;
+                                } catch (IOException e) {
+                                    // Do nothing
+                                }
+                            }
+                        }
+                    }
+                }.start();
+            } catch (Exception e) {
+                Log.d("writelog", "open logcat process failed. message: " + e.getMessage());
+            }
+        }
+    }
+
 }
